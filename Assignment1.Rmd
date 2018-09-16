@@ -1,0 +1,58 @@
+---
+title: "Assignment1"
+author: "Guangyan Yu"
+date: "September 12, 2018"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Document assignment
+
+Consider the following situation:
+
+A sloppy printer produces books with an average of 2 misprints per page. You want to know how many pages have more than k misprints in a book of n pages. Make an n x k table that shows the relationship between the total number of pages in a book and the number of pages with k misprints.Show and explain your work. Include equations and calculations to teach the reader how to solve the problem.Include an image of a book.Push your solution to a github repository and submit the url for repository on blackboard. Be sure your repo includes your document as a pdf file and as an RMD file. Include other files needed to recompile your document.
+
+##A Image of books
+```{r}
+cover_url<- 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk-vabmX5h366Xm0R_L3LCMMSOPmRPgGTH8M0fTxEZlhfkZjMc'
+if (!file.exists(cover_file <- 'cover.jpg'))
+  download.file(cover_url, cover_file, mode = 'wb')
+knitr::include_graphics(if (identical(knitr:::pandoc_to(), 'html')) cover_url else cover_file)
+```
+
+##Solve the problem
+
+We assume the errors on every page is poisson distribution, in which $\lambda=2$
+
+So $P(errors=k)=\frac{2^k}{k!}*e^{-\lambda}$
+
+When we define a bad page as a page has more than k misprints,the probability of a bad page is $p=\sum_k(P(errors=k+1))$
+
+The number of bad pages is binomial distribution, in which the parameter p is  $p=\sum_k(P(errors=k+1))$. In this case, the book has 50 pages, so what we need to calculate is $C_{50}^np^n(1-p)^{50-n}$
+
+##Code
+```{r}
+library(knitr)
+n<-seq(10,50,10)
+k<-seq(0,10,1)#The number of errors vary from 0 to 10
+colum_n<-vector(mode = "numeric",length = 0)
+result<-rep(NULL,5)
+for(i in 1:11){
+  p<-ppois(k[i],2,lower.tail=FALSE)#The probability of a bad page
+  for (j in 1:5){
+    colum_n[j]<-dbinom(n[j],50,p)#The probability that there are n[j] pages are bad
+  }
+  result<-rbind(result,colum_n)
+}
+
+result<-as.data.frame(result)
+colnames(result)<-c('10pages','20pages','30pages','40pages','50pages')
+rownames(result)<-k
+kable(result)
+```
