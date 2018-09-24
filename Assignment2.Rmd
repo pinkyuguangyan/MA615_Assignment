@@ -1,0 +1,157 @@
+---
+title: "Assignment2"
+author: "Guangyan Yu"
+date: "September 22, 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R Markdown document is made interactive using Shiny. Unlike the more traditional workflow of creating static reports, you can now create documents that allow your readers to change the assumptions underlying your analysis and see the results immediately. 
+
+To learn more, see [Interactive Documents](http://rmarkdown.rstudio.com/authoring_shiny.html).
+
+## LakeHuron ggplot
+
+You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
+
+```{r eruptions, echo=FALSE, warning=FALSE}
+library(ggplot2)
+inputPanel(
+  
+  
+  checkboxInput("smooth", label = "Add smoother?", value = FALSE)
+)
+
+renderPlot({
+  
+  if(input$smooth){
+    scatter.smooth(LakeHuron, col="blue")
+     lines(LakeHuron, col="red")
+    }
+  else{
+    LakeHuron<-as.vector(LakeHuron)
+    Time<-seq(1875,1972)
+    data<-data.frame(cbind(Time,LakeHuron))
+    ggplot(data)+geom_line(mapping=aes(x=Time,y=LakeHuron))}; 
+})
+
+```
+
+## Exercises
+# 3.5.1
+2.What do the empty cells in plot with facet_grid(drv ~ cyl) mean? How do they relate to this plot?
+
+*It means that the plot will be categorized by the two virables drv and cyl*
+
+
+```{r tabsets, echo=FALSE}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = drv, y = cyl))
+
+```
+
+3.What plots does the following code make? What does . do?
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  facet_grid(. ~ cyl)
+```
+
+*The fist one menas the plot is categorized by the variable drv, and the faceting groups are on the rows dimension*
+
+*The second one menas the plot is categorized by the variable cyl, and the faceting groups are on the columns dimension*
+
+*. means rows and cols*
+
+#3.6.1
+6.Recreate the R code necessary to generate the following graphs.
+```{r}
+ggplot(mpg,mapping=aes(x=displ,y=hwy))+geom_point()+geom_smooth(se=FALSE)
+ggplot(mpg)+geom_point(mapping=aes(x=displ,y=hwy))+geom_smooth(mapping=aes(x=displ,y=hwy,group=drv),se=FALSE)
+ggplot(mpg)+geom_point(mapping=aes(x=displ,y=hwy,color=drv))+geom_smooth(mapping=aes(x=displ,y=hwy,group=drv,color=drv),se=FALSE)
+ggplot(mpg)+geom_point(mapping=aes(x=displ,y=hwy,color=drv))+geom_smooth(mapping=aes(x=displ,y=hwy),se=FALSE)
+ggplot(mpg)+geom_point(mapping=aes(x=displ,y=hwy,color=drv))+geom_smooth(mapping=aes(x=displ,y=hwy,group=drv,linetype=drv),se=FALSE)
+ggplot(mpg)+geom_point(mapping=aes(x=displ,y=hwy,color=drv))
+
+```
+#5.2.4
+1.Find all flights that
+
+Had an arrival delay of two or more hours
+```{r}
+library(dplyr)
+library(nycflights13)
+filter(flights,arr_delay>=120)
+```
+Flew to Houston (IAH or HOU)
+```{r}
+filter(flights,dest %in% c("IAH","HOU"))
+```
+Were operated by United, American, or Delta
+```{r}
+filter(flights,carrier %in% c("UA","AA","DL"))
+```
+Departed in summer (July, August, and September)
+```{r}
+filter(flights,month %in% c(7,8,9))
+```
+Arrived more than two hours late, but didn’t leave late
+```{r}
+filter(flights, arr_delay>120,dep_delay==0)
+```
+Were delayed by at least an hour, but made up over 30 minutes in flight
+```{r}
+filter(flights,arr_delay+dep_delay>=60,air_time>30)
+```
+Departed between midnight and 6am (inclusive)
+```{r}
+filter(flights,dep_time>=000,dep_time<=600)
+```
+
+2.Another useful dplyr filtering helper is between(). What does it do? Can you use it to simplify the code needed to answer the previous challenges?
+
+Departed in summer (July, August, and September)
+```{r}
+filter(flights,between(month,7,9))
+```
+Departed between midnight and 6am (inclusive)
+```{r}
+filter(flights,between(dep_time,000,600))
+```
+
+3.How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+```{r}
+sum(is.na(flights$dep_time))
+```
+*There are 8255f lights have a missing dep_time*
+```{r}
+apply(is.na(flights),2,sum)
+```
+*The variables dep_delay, arr_time, arr_delay, tailnum, air_time have missing values.*
+
+*These variables would show NA*
+
+4.Why is NA ^ 0 not missing? Why is NA | TRUE not missing? Why is FALSE & NA not missing? Can you figure out the general rule? (NA * 0 is a tricky counterexample!)
+
+*Because everything ^0 is 1*
+
+*Because NA|TRUE contains TRUE*
+
+*Because NA&FALSE contains TRUE*
+
+
+
+
+
+
+
+
