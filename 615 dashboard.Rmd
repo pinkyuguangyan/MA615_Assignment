@@ -1,0 +1,91 @@
+---
+title: "Analysis for stocks"
+author: Guangyan Yu, Yaotang Luo
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+
+library(knitr)
+library(quantmod)
+library(plotly)
+library(flexdashboard)
+
+start <- as.Date("2017-01-01")
+end <- as.Date("2017-12-31")
+
+library(rvest)
+library(tidytext)
+library(tidyverse)
+library(wordcloud)
+
+url1<-"https://www.theguardian.com/business/2017/oct/27/tech-giants-lift-us-stock-markets-to-record-highs"
+url1_web<-read_html(url1)
+text1<-html_nodes(url1_web,"div.content__article-body") %>% html_text
+url2<-"https://www.cnbc.com/2017/10/27/amazon-shares-jump-as-internet-giants-massive-investments-pay-off-analysts.html"
+url2_web<-read_html(url2)
+text2<-html_nodes(url2_web,"div.group") %>% html_text
+url3<-"http://www.valueline.com/Markets/Daily_Updates/Stock_Market_Today__October_27,_2017.aspx#.W_MvOJNKj-Y"
+url3_web<-read_html(url3)
+text3<-html_nodes(url3_web,"div#ArticleContent") %>% html_text
+
+text1<-gsub("\n","",text1)
+text1<-gsub("\t","",text1)
+text2<-gsub("\n","",text2)
+text2<-gsub("\t","",text2)
+text1<-as.tibble(text1)
+colnames(text1)<-"text"
+text2<-as.tibble(text2)
+colnames(text2)<-"text"
+text3<-as.tibble(text3)
+colnames(text3)<-"text"
+
+text1_tidy<-text1 %>%
+  unnest_tokens(word,text) %>%
+  anti_join(stop_words)
+text2_tidy<-text2 %>%
+  unnest_tokens(word,text)  %>%
+  anti_join(stop_words)
+text3_tidy<-text3 %>%
+  unnest_tokens(word,text)  %>%
+  anti_join(stop_words)  
+
+text_tidy<-rbind(text1_tidy,text2_tidy,text3_tidy)
+
+
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Google
+
+```{r}
+getSymbols("GOOG", src = "yahoo", from = start, to = end)
+#head(GOOG)
+candleChart(GOOG, up.col = "red", dn.col = "green", theme = "black")
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Microsoft
+
+```{r}
+text3_tidy %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))  
+
+```
+
+### Wordcloud 
+
+```{r}
+text_tidy %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 1000))
+```
+
